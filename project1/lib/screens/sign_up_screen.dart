@@ -42,7 +42,8 @@ class _SignUpFormState extends State<SignUpForm> {
     // Validate input
     if (nameController.text.isEmpty ||
         emailController.text.isEmpty ||
-        !emailController.text.contains('@stud.fci-cu.edu.eg') ||
+        !emailController.text.endsWith('@stud.fci-cu.edu.eg') ||
+        !emailController.text.startsWith(RegExp(r'^[0-9]+')) ||
         idController.text.isEmpty ||
         passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty ||

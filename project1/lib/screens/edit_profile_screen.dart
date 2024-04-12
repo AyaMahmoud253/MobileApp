@@ -1,9 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:project1/DatabaseHelper.dart';
+import 'package:project1/screens/profile_screen.dart';
 import 'package:project1/widgets/custom_text_field.dart';
 import 'package:project1/widgets/custum_button.dart';
-import 'package:flutter/material.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  final String userEmail;
+
+  EditProfilePage({Key? key, required this.userEmail}) : super(key: key);
 
   @override
   State<EditProfilePage> createState() => _EditProfileScreenState();
@@ -11,19 +15,59 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfilePage> {
   TextEditingController nameController = TextEditingController();
-
   TextEditingController genderController = TextEditingController();
-
   TextEditingController emailController = TextEditingController();
-
   TextEditingController idController = TextEditingController();
-
   TextEditingController levelController = TextEditingController();
+
+  DatabaseHelper dbHelper = DatabaseHelper();
 
   @override
   void initState() {
     super.initState();
     // Fetch user data when the widget is initialized
+  }
+
+  void saveChanges(BuildContext context) async {
+    // Fetch the current user data
+    Map<String, dynamic>? currentUserData =
+        await dbHelper.getUserDataByEmail(widget.userEmail);
+
+    if (currentUserData != null) {
+      // Prepare the data to be updated
+      Map<String, dynamic> updatedData = {
+        'name': nameController.text.isNotEmpty
+            ? nameController.text
+            : currentUserData['name'],
+        'gender': genderController.text.isNotEmpty
+            ? genderController.text
+            : currentUserData['gender'],
+        'studentId': idController.text.isNotEmpty
+            ? idController.text
+            : currentUserData['studentId'],
+        'level': levelController.text.isNotEmpty
+            ? levelController.text
+            : currentUserData['level'],
+      };
+
+      // Update user data by email
+      await dbHelper.updateUserDataByEmail(
+        email: widget.userEmail,
+        data: updatedData,
+      );
+
+      // Navigate to ProfilePage
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfilePage(userEmail: widget.userEmail),
+        ),
+      );
+    } else {
+      // Handle the case where user data couldn't be fetched
+      // You might want to show an error message or handle it based on your app's logic
+      print('User data not found');
+    }
   }
 
   @override
@@ -46,7 +90,7 @@ class _EditProfileScreenState extends State<EditProfilePage> {
             controllerText: nameController,
             hint: 'Update your name',
             icon: Icon(Icons.person),
-            label: 'Mariam',
+            label: 'Name',
           ),
           SizedBox(
             height: 10,
@@ -55,7 +99,7 @@ class _EditProfileScreenState extends State<EditProfilePage> {
             obsText: false,
             controllerText: genderController,
             hint: 'Update your Gender',
-            label: 'Female',
+            label: 'Gender',
             icon: Icon(Icons.text_fields),
           ),
           SizedBox(
@@ -63,19 +107,21 @@ class _EditProfileScreenState extends State<EditProfilePage> {
           ),
           CustomTextField(
             obsText: false,
-            controllerText: emailController,
+            controllerText: emailController..text = widget.userEmail,
             hint: 'Update your email',
-            label: '20200527@stud.fci-cu.edu.eg',
+            label: 'Email',
             icon: Icon(Icons.email),
           ),
           SizedBox(
             height: 10,
           ),
-          /*CustomTextField(obsText: false,
-          //controllerText: idController,
-          hint: 'i.e, 20200001',
-          icon: Icon(Icons.perm_identity),
-          label: 'ID',),*/
+          CustomTextField(
+            obsText: false,
+            controllerText: idController,
+            hint: 'i.e, 20200001',
+            icon: Icon(Icons.perm_identity),
+            label: 'ID',
+          ),
           SizedBox(
             height: 10,
           ),
@@ -83,7 +129,7 @@ class _EditProfileScreenState extends State<EditProfilePage> {
             obsText: false,
             controllerText: levelController,
             hint: 'Update your level',
-            label: 'Four',
+            label: 'Level',
             icon: Icon(Icons.numbers),
           ),
           SizedBox(
@@ -91,7 +137,9 @@ class _EditProfileScreenState extends State<EditProfilePage> {
           ),
           CustomButton(
             text: 'Save Changes',
-            onPressed: () {},
+            onPressed: () async {
+              saveChanges(context);
+            },
           ),
           SizedBox(
             height: 10,
@@ -99,7 +147,13 @@ class _EditProfileScreenState extends State<EditProfilePage> {
           CustomButton(
             text: 'My Profile',
             onPressed: () {
-              Navigator.pushNamed(context, 'ProfilePage');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ProfilePage(userEmail: widget.userEmail),
+                ),
+              );
             },
           )
         ],

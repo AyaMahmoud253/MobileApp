@@ -17,8 +17,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         'LoginPage': (context) => LoginPage(),
-        //'ProfilePage': (context) => ProfilePage(userEmail: currentUserEmail),
-        'EditProfilePage': (context) => EditProfilePage(),
+        'ProfilePage': (context) => ProfilePage(),
+        //'EditProfilePage': (context) => EditProfilePage(),
         'SignUpPage': (context) => SignUpPage(),
       },
       home: SignUpPage(), // Remove initialRoute and set home to SignUpPage

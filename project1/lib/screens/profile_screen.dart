@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:project1/DatabaseHelper.dart';
+import 'package:project1/screens/edit_profile_screen.dart';
 import 'package:project1/widgets/custom_view_card.dart';
 import 'package:project1/widgets/custum_button.dart';
-import 'package:project1/DatabaseHelper.dart'; // Import your DatabaseHelper class
+import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
 
 class ProfilePage extends StatefulWidget {
-  final String userEmail;
+  final String? userEmail;
 
-  ProfilePage({Key? key, required this.userEmail}) : super(key: key);
+  ProfilePage({Key? key, this.userEmail}) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late String name;
-  late String gender;
-  late String email;
-  late String studentId;
-  late String level;
+  late String name = 'name';
+  late String gender = 'gender';
+  late String email = 'email@stud.fci-cu.edu.eg';
+  late String studentId = '########';
+  late String level = '#';
+  Uint8List? _profilePhoto;
 
   @override
   void initState() {
@@ -26,17 +30,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void fetchUserData() async {
-    DatabaseHelper dbHelper = DatabaseHelper();
-    Map<String, dynamic>? userData =
-        await dbHelper.getUserDataByEmail(widget.userEmail);
-    if (userData != null) {
-      setState(() {
-        name = userData['name'];
-        gender = userData['gender'];
-        email = userData['email'];
-        studentId = userData['studentId'];
-        level = userData['level'];
-      });
+    if (widget.userEmail != null) {
+      DatabaseHelper dbHelper = DatabaseHelper();
+      Map<String, dynamic>? userData =
+          await dbHelper.getUserDataByEmail(widget.userEmail!);
+      if (userData != null) {
+        setState(() {
+          name = userData['name'];
+          gender = userData['gender'];
+          email = userData['email'];
+          studentId = userData['studentId'];
+          level = userData['level'];
+          _profilePhoto = userData['profilePhoto'];
+        });
+      }
     }
   }
 
@@ -57,7 +64,20 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Stack(
               alignment: Alignment.bottomRight,
               children: [
-                CircleAvatar(radius: 90, child: Icon(Icons.person, size: 90)),
+                CircleAvatar(
+                  radius: 90,
+                  backgroundColor: Colors.transparent,
+                  child: ClipOval(
+                    child: _profilePhoto != null
+                        ? Image.memory(
+                            _profilePhoto!,
+                            fit: BoxFit.cover,
+                            width: 180.0,
+                            height: 180.0,
+                          )
+                        : Icon(Icons.person, size: 90),
+                  ),
+                ),
                 Container(
                   padding: EdgeInsets.all(2),
                   decoration: BoxDecoration(
@@ -72,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: IconButton(
                       icon: Icon(Icons.edit, color: Colors.white),
                       onPressed: () {
-                        Navigator.pushNamed(context, 'EditProfilePage');
+                        _showImagePickerDialog();
                       },
                     ),
                   ),
@@ -109,11 +129,31 @@ class _ProfilePageState extends State<ProfilePage> {
           CustomButton(
             text: 'Edit Profile',
             onPressed: () {
-              Navigator.pushNamed(context, 'EditProfilePage');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfilePage(userEmail: email),
+                ),
+              );
             },
           )
         ],
       ),
     );
+  }
+
+  Future<void> _showImagePickerDialog() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      Uint8List? imageBytes = await pickedFile.readAsBytes();
+      DatabaseHelper dbHelper = DatabaseHelper();
+      await dbHelper.updateProfilePhoto(widget.userEmail!, imageBytes!);
+      setState(() {
+        _profilePhoto = imageBytes;
+      });
+    }
   }
 }
