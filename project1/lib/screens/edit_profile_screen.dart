@@ -19,7 +19,7 @@ class _EditProfileScreenState extends State<EditProfilePage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController idController = TextEditingController();
   TextEditingController levelController = TextEditingController();
-
+  //initialized for managing text input fields
   DatabaseHelper dbHelper = DatabaseHelper();
 
   @override

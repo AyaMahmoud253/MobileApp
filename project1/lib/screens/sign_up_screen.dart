@@ -56,6 +56,18 @@ class _SignUpFormState extends State<SignUpForm> {
       );
       return;
     }
+    // Check if email already exists in the database
+    DatabaseHelper dbHelper = DatabaseHelper();
+    Map<String, dynamic>? existingUser =
+        await dbHelper.getUserDataByEmail(emailController.text);
+    if (existingUser != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Email already exists. Please use a different email.'),
+        ),
+      );
+      return;
+    }
 
     // Prepare user data
     Map<String, dynamic> userData = {
@@ -69,7 +81,7 @@ class _SignUpFormState extends State<SignUpForm> {
     };
 
     // Insert user into SQLite database
-    DatabaseHelper dbHelper = DatabaseHelper();
+
     await dbHelper.insertUser(userData);
 
     ScaffoldMessenger.of(context).showSnackBar(

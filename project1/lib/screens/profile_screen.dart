@@ -144,16 +144,40 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _showImagePickerDialog() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
+    final ImageSource? source = await showDialog<ImageSource>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Pick Image From"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, ImageSource.gallery);
+              },
+              child: Text('Gallery'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, ImageSource.camera);
+              },
+              child: Text('Camera'),
+            ),
+          ],
+        );
+      },
+    );
 
-    if (pickedFile != null) {
-      Uint8List? imageBytes = await pickedFile.readAsBytes();
-      DatabaseHelper dbHelper = DatabaseHelper();
-      await dbHelper.updateProfilePhoto(widget.userEmail!, imageBytes!);
-      setState(() {
-        _profilePhoto = imageBytes;
-      });
+    if (source != null) {
+      final XFile? pickedFile = await picker.pickImage(source: source);
+
+      if (pickedFile != null) {
+        Uint8List? imageBytes = await pickedFile.readAsBytes();
+        DatabaseHelper dbHelper = DatabaseHelper();
+        await dbHelper.updateProfilePhoto(widget.userEmail!, imageBytes!);
+        setState(() {
+          _profilePhoto = imageBytes;
+        });
+      }
     }
   }
 }

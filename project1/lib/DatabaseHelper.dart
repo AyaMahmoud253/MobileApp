@@ -4,10 +4,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static Database? _database;
+  static Database? _database; //singleton pattern Static Instance Variable
 
   Future<Database?> get database async {
-    if (_database != null) return _database;
+    if (_database != null)
+      return _database; // If _database is not null, it returns the existing database instance.
 
     // If _database is null, instantiate it
     _database = await initDatabase();
@@ -16,18 +17,22 @@ class DatabaseHelper {
 
   Future<Database?> initDatabase() async {
     String path = await getDatabasesPath();
+    //open an existing database or create a new one if it doesn't exist.
     return openDatabase(
       join(path, 'user_database.db'),
       onCreate: (db, version) {
+        //create a table named 'users' ->> SQL
         return db.execute(
           "CREATE TABLE users(id INTEGER PRIMARY KEY, name TEXT, gender TEXT, email TEXT, studentId TEXT, level TEXT, password TEXT, profilePhoto BLOB)",
         );
       },
       version: 2, // Increment the version number
+      //If the provided version is greater than the current version of the database (or if the database doesn't exist yet), the onCreate callback is invoked to create the database schema.
       onUpgrade: (db, oldVersion, newVersion) {
         if (oldVersion < 2) {
           // Add migration script to alter the table
-          db.execute("ALTER TABLE users ADD COLUMN profilePhoto BLOB");
+          db.execute(
+              "ALTER TABLE users ADD COLUMN profilePhoto BLOB"); //it executes a SQL statement to add the 'profilePhoto' column
         }
       },
     );
@@ -65,7 +70,7 @@ class DatabaseHelper {
     return results.isNotEmpty;
   }
 
-  Future<void> updateUserData(Map<String, dynamic> userData) async {
+  /*Future<void> updateUserData(Map<String, dynamic> userData) async {
     final Database? db = await database;
     await db?.update(
       'users',
@@ -73,8 +78,9 @@ class DatabaseHelper {
       where: 'email = ?',
       whereArgs: [userData['email']],
     );
-  }
+  }*/
 
+  //Uint8List representing the bytes of the photo
   Future<void> updateProfilePhoto(String email, Uint8List photoBytes) async {
     final Database? db = await database;
     await db?.update(
